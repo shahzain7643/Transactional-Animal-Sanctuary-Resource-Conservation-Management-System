@@ -1,0 +1,42 @@
+openapi: 3.0.0
+info:
+  title: Animal Sanctuary Management API
+  version: 1.0.0
+  description: Transactional Animal Sanctuary Resource & Conservation Management System
+
+servers:
+  - url: http://localhost:5000/api/v1
+
+paths:
+
+  /animals:
+    get:
+      summary: Get all animals
+      description: Retrieve list of animals in the sanctuary
+      responses:
+        '200':
+          description: Successful response
+
+  /auth/login:
+    post:
+      summary: Login user
+      description: Authenticate user and return JWT token
+      responses:
+        '200':
+          description: Login successful
+
+  /medical/treat:
+    post:
+      summary: Record medical treatment
+      description: Veterinarian records treatment and medicine usage
+      responses:
+        '200':
+          description: Treatment recorded
+
+  /adoptions/approve:
+    post:
+      summary: Approve adoption
+      description: Admin approves adoption and records payment
+      responses:
+        '200':
+          description: Adoption approved
