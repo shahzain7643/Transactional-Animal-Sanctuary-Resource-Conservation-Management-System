@@ -25,11 +25,11 @@ function App() {
           }
         />
 
-        {/* ONLY ADMIN */}
+        {/* FIXED — ALLOW ALL ROLES */}
         <Route
           path="/animals"
           element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
+            <ProtectedRoute allowedRoles={["Admin", "Adopter", "Veterinarian"]}>
               <Animals />
             </ProtectedRoute>
           }

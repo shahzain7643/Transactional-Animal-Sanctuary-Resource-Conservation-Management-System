@@ -33,7 +33,7 @@ export default function Dashboard() {
       <div style={{ textAlign: "center", marginTop: "40px" }}>
         <h1>Dashboard</h1>
 
-        {/* 🔥 FIXED NAVIGATION */}
+        {/* FIXED NAVIGATION */}
         {role === "Admin" && (
           <>
             <button onClick={() => navigate("/animals")}>

@@ -1,23 +1,34 @@
-const authorizeRoles = (allowedRoles) => {
-  return (req, res, next) => {
+const pool = require("../db/database");
+
+const authorizeRoles = (...roles) => {
+  return async (req, res, next) => {
     try {
-      // DEBUG (optional)
-      console.log("User role:", req.user);
+      const userId = req.user.user_id;
 
-      // IMPORTANT: use correct field
-      const userRole = req.user.role || req.user.role_name;
+      const result = await pool.query(
+        `SELECT r.role_name
+         FROM userroles ur
+         JOIN roles r ON ur.role_id = r.role_id
+         WHERE ur.user_id = $1`,
+        [userId]
+      );
 
-      if (!userRole) {
-        return res.status(403).json({ message: "No role found" });
-      }
+      const userRole = result.rows[0]?.role_name;
 
-      if (!allowedRoles.includes(userRole)) {
-        return res.status(403).json({ message: "Forbidden: Access denied" });
+      console.log("USER ROLE:", userRole);
+
+      if (!roles.includes(userRole)) {
+        return res.status(403).json({
+          message: "Access denied"
+        });
       }
 
       next();
+
     } catch (err) {
-      return res.status(500).json({ message: "Role check failed" });
+      res.status(500).json({
+        message: "Role middleware error"
+      });
     }
   };
 };

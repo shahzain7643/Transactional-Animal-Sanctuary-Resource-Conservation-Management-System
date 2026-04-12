@@ -1,45 +1,45 @@
-import { useState } from "react";
-import axios from "axios";
-
-const API = "http://localhost:5000/api/v1";
+import { useEffect, useState } from "react";
+import API from "../api/axios";
 
 export default function ApproveAdoption() {
-  const [applicationId, setApplicationId] = useState("");
+  const [applications, setApplications] = useState([]);
 
-  const approve = async () => {
-    try {
-      const token = localStorage.getItem("token");
+  const fetchApps = async () => {
+    const res = await API.get("/adoptions");
+    setApplications(res.data.data);
+  };
 
-      await axios.post(
-        `${API}/adoptions/approve`,
-        { application_id: applicationId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  useEffect(() => {
+    fetchApps();
+  }, []);
 
-      alert("✅ Adoption Approved (Transaction Success)");
-    } catch (err) {
-      alert("❌ Transaction Failed (Rollback occurred)");
-    }
+  const approve = async (id) => {
+    await API.post("/adoptions/approve", { application_id: id });
+    fetchApps();
+  };
+
+  const reject = async (id) => {
+    await API.post("/adoptions/reject", { application_id: id });
+    fetchApps();
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
-      <h2>Approve Adoption</h2>
+    <div>
+      <h2>Adoption Applications</h2>
 
-      <input
-        placeholder="Application ID"
-        value={applicationId}
-        onChange={(e) => setApplicationId(e.target.value)}
-        style={{ padding: "8px", marginRight: "10px" }}
-      />
+      {applications.map((app) => (
+        <div key={app.application_id}>
+          {app.animal_name} - {app.adopter_name} ({app.status})
 
-      <button onClick={approve} style={{ padding: "8px 12px" }}>
-        Approve
-      </button>
+          <button onClick={() => approve(app.application_id)}>
+            Approve
+          </button>
+
+          <button onClick={() => reject(app.application_id)}>
+            Reject
+          </button>
+        </div>
+      ))}
     </div>
   );
 }

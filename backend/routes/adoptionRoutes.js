@@ -1,16 +1,46 @@
 const express = require("express");
 const router = express.Router();
 
-const { approveAdoption } = require("../controllers/adoptionController");
+const {
+  applyForAdoption,
+  getApplications,
+  approveAdoption,
+  rejectAdoption
+} = require("../controllers/adoptionController");
 
-const authenticateToken = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
+// APPLY (Adopter)
 router.post(
-  "/adoptions/approve",
-  authenticateToken,
-  authorizeRoles(["Admin"]),
+  "/apply",
+  authMiddleware,
+  authorizeRoles("Adopter"),
+  applyForAdoption
+);
+
+// GET ALL (Admin)
+router.get(
+  "/",
+  authMiddleware,
+  authorizeRoles("Admin"),
+  getApplications
+);
+
+// APPROVE
+router.post(
+  "/approve",
+  authMiddleware,
+  authorizeRoles("Admin"),
   approveAdoption
+);
+
+// REJECT
+router.post(
+  "/reject",
+  authMiddleware,
+  authorizeRoles("Admin"),
+  rejectAdoption
 );
 
 module.exports = router;

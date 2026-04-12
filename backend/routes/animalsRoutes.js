@@ -1,4 +1,3 @@
-console.log("Animals routes loaded");
 const express = require("express");
 const router = express.Router();
 
@@ -12,35 +11,31 @@ const {
 const authMiddleware = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
-// GET
 router.get(
-  "/animals",
+  "/",
   authMiddleware,
-  authorizeRoles(["Admin", "Veterinarian"]),
+  authorizeRoles("Admin", "Veterinarian", "Adopter"),
   getAnimals
 );
 
-// POST
 router.post(
-  "/animals",
+  "/",
   authMiddleware,
-  authorizeRoles(["Admin"]),
+  authorizeRoles("Admin"),
   createAnimal
 );
 
-// PUT (IMPORTANT)
 router.put(
-  "/animals/:id",
+  "/:id",
   authMiddleware,
-  authorizeRoles(["Admin"]),
+  authorizeRoles("Admin"),
   updateAnimal
 );
 
-// DELETE
 router.delete(
-  "/animals/:id",
+  "/:id",
   authMiddleware,
-  authorizeRoles(["Admin"]),
+  authorizeRoles("Admin"),
   deleteAnimal
 );
 

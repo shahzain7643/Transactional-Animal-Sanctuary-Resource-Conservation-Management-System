@@ -33,7 +33,7 @@ const getAnimals = async (req, res) => {
   }
 };
 
-// CREATE
+
 // CREATE
 const createAnimal = async (req, res) => {
   try {

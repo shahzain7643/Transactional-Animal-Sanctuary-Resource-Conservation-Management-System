@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../api/axios"; // ✅ USE YOUR AXIOS INSTANCE
+import API from "../api/axios";
 import Navbar from "../components/Navbar";
 
 export default function Animals() {
@@ -10,11 +10,12 @@ export default function Animals() {
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
 
-  // 🔥 ADVANCED FEATURES
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
 
-  // ✅ FETCH ANIMALS
+  const role = localStorage.getItem("role");
+
+  // FETCH ANIMALS
   const fetchAnimals = async () => {
     try {
       setLoading(true);
@@ -23,60 +24,72 @@ export default function Animals() {
         `/animals?search=${search}&status=${status}`
       );
 
-      setAnimals(res.data.data);
+      setAnimals(res.data.data || []);
     } catch (err) {
       console.log("FETCH ERROR:", err.response?.data || err.message);
-      alert("Error fetching animals");
+
+      // HANDLE 403 PROPERLY
+      if (err.response?.status === 403) {
+        alert("You are not authorized to view animals");
+      } else {
+        alert("Error fetching animals");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ INITIAL LOAD
   useEffect(() => {
     fetchAnimals();
   }, []);
 
-  // ✅ SEARCH + FILTER
   useEffect(() => {
     fetchAnimals();
   }, [search, status]);
 
-  // ✅ ADD ANIMAL
+  // ADD ANIMAL (Admin only)
   const addAnimal = async () => {
     try {
       await API.post("/animals", { name });
-
       setName("");
       fetchAnimals();
     } catch (err) {
-      console.log("ADD ERROR:", err.response?.data || err.message);
-      alert("Error adding animal");
+      alert(err.response?.data?.message || "Error adding animal");
     }
   };
 
-  // ✅ DELETE ANIMAL
+  // DELETE
   const deleteAnimal = async (id) => {
     try {
       await API.delete(`/animals/${id}`);
       fetchAnimals();
     } catch (err) {
-      console.log("DELETE ERROR:", err.response?.data || err.message);
-      alert("Error deleting animal");
+      alert(err.response?.data?.message || "Error deleting animal");
     }
   };
 
-  // ✅ UPDATE ANIMAL
+  // UPDATE
   const updateAnimal = async () => {
     try {
       await API.put(`/animals/${editId}`, { name: editName });
-
       setEditId(null);
       setEditName("");
       fetchAnimals();
     } catch (err) {
-      console.log("UPDATE ERROR:", err.response?.data || err.message);
-      alert("Error updating animal");
+      alert(err.response?.data?.message || "Error updating animal");
+    }
+  };
+
+  // APPLY FOR ADOPTION
+  const applyForAdoption = async (animalId) => {
+    try {
+      const res = await API.post("/adoptions/apply", {
+        animal_id: animalId
+      });
+
+      alert(res.data.message);
+    } catch (err) {
+      alert(err.response?.data?.message || "Error applying");
     }
   };
 
@@ -84,21 +97,22 @@ export default function Animals() {
     <>
       <Navbar />
 
-      <div style={{ maxWidth: "600px", margin: "40px auto" }}>
+      <div style={{ maxWidth: "700px", margin: "40px auto" }}>
         <h2>Animals</h2>
 
-        {/* ANALYTICS */}
         <p>Total Animals: {animals.length}</p>
 
-        {/* ADD */}
-        <div style={{ marginBottom: "10px" }}>
-          <input
-            placeholder="Animal name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button onClick={addAnimal}>Add</button>
-        </div>
+        {/* 🔵 ADMIN ONLY */}
+        {role === "Admin" && (
+          <div style={{ marginBottom: "10px" }}>
+            <input
+              placeholder="Animal name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button onClick={addAnimal}>Add</button>
+          </div>
+        )}
 
         {/* SEARCH */}
         <input
@@ -119,7 +133,7 @@ export default function Animals() {
 
         <ul>
           {animals.map((a) => (
-            <li key={a.animal_id}>
+            <li key={a.animal_id} style={{ marginBottom: "10px" }}>
               {editId === a.animal_id ? (
                 <>
                   <input
@@ -130,18 +144,37 @@ export default function Animals() {
                 </>
               ) : (
                 <>
-                  {a.name} ({a.adoption_status})
-                  <button
-                    onClick={() => {
-                      setEditId(a.animal_id);
-                      setEditName(a.name);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button onClick={() => deleteAnimal(a.animal_id)}>
-                    Delete
-                  </button>
+                  <strong>{a.name}</strong> ({a.adoption_status})
+
+                  {/* 🔵 ADMIN CONTROLS */}
+                  {role === "Admin" && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setEditId(a.animal_id);
+                          setEditName(a.name);
+                        }}
+                      >
+                        Edit
+                      </button>
+
+                      <button onClick={() => deleteAnimal(a.animal_id)}>
+                        Delete
+                      </button>
+                    </>
+                  )}
+
+                  {/* 🟢 ADOPTER BUTTON */}
+                  {role === "Adopter" &&
+                    a.adoption_status === "Available" && (
+                      <button
+                        onClick={() =>
+                          applyForAdoption(a.animal_id)
+                        }
+                      >
+                        Apply
+                      </button>
+                    )}
                 </>
               )}
             </li>
